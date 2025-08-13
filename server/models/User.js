@@ -1,4 +1,4 @@
-import mongoose from "momgoose";
+import mongoose from "mongoose";
 
 // create schema
 
@@ -10,7 +10,8 @@ const userSchema = new mongoose.Schema(
     imageUrl: { type: String, required: true },
     enrolledCourses: [
       {
-        types: mongoose.Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
+
         ref: "Course",
       },
     ],

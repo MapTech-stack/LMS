@@ -17,44 +17,41 @@ export const clerkWebhooks = async (req, res) => {
     const { data, type } = req.body;
 
     switch (type) {
-      case "user.created":
-        // Handle user created event
-        {
-          const userData = {
-            _id: data.id,
-            email: data.email_address[0].email_address,
-            name: data.first_name + " " + data.last_name,
-            imageUrl: data.image_url,
-          };
-          await User.create(userData);
-          res.json({});
-          break;
-        }
-      case "user.updated":
-          // Handle user updated event
-        {
-          const userData = {
-            email: data.email_address[0].email_address,
-            name: data.first_name + " " + data.last_name,
-            imageUrl: data.image_url,
-          };
-          await User.findByIdAndUpdate(data.id, userData);
-          res.json({});
-          break;
-        }
-      case "user.deleted":
-        // Handle user deleted event
-        {
-            await User.findByIdAndDelete(data.id);
-            req.json({})
-            break;
-        }
+      case "user.created": // Handle user created event
+      {
+        const userData = {
+          _id: data.id,
+          email: data.email_address[0].email_address,
+          name: data.first_name + " " + data.last_name,
+          imageUrl: data.image_url,
+        };
+        await User.create(userData);
+        res.json({});
+        break;
+      }
+      case "user.updated": // Handle user updated event
+      {
+        const userData = {
+          email: data.email_address[0].email_address,
+          name: data.first_name + " " + data.last_name,
+          imageUrl: data.image_url,
+        };
+        await User.findByIdAndUpdate(data.id, userData);
+        res.json({});
+        break;
+      }
+      case "user.deleted": // Handle user deleted event
+      {
+        await User.findByIdAndDelete(data.id);
+        res.json({});
+        break;
+      }
       default:
         // Handle unknown event type
 
         break;
     }
   } catch (error) {
-    res.json({success:false, message: error.message});
+    res.json({ success: false, message: error.message });
   }
 };
