@@ -1,3 +1,10 @@
+// 1️⃣ Add this at the very top for Vercel
+export const config = {
+  api: {
+    bodyParser: false, // Disable body parsing for raw webhook body
+  },
+};
+
 import express from "express";
 import cors from "cors";
 import "dotenv/config";
@@ -9,45 +16,34 @@ import connectCloudinary from "./configs/cloudinary.js";
 import courseRouter from "./routes/courseRoute.js";
 import userRouter from "./routes/userRoutes.js";
 
-// initialize Express
 const app = express();
 
-// connect to database
-
+// 2️⃣ connect to database
 await connectDB();
-
 await connectCloudinary();
 
-// middleware
+// 3️⃣ middleware
 app.use(cors());
-app.use(clerkMiddleware()); // Clerk middleware for authentication to become educator
 
-// routes
-app.post("/clerk", express.json(), clerkWebhooks);
-app.post('/stripe',express.raw({type: 'application/json'}), stripeWebHooks)
+// 4️⃣ Webhooks (⚠️ put BEFORE clerkMiddleware)
+app.post("/clerk", express.json(), clerkWebhooks); // Clerk can use JSON
+app.post("/stripe", express.raw({ type: "application/json" }), stripeWebHooks); // Stripe needs raw body
 
+// 5️⃣ Global middlewares (after webhooks)
+app.use(express.json()); 
+app.use(clerkMiddleware()); // Clerk middleware for protected routes
 
-app.use(express.json()); // Middleware to parse JSON requests globally
-
-
+// 6️⃣ Routes
 app.get("/", (req, res) => {
   res.send("API is running");
 });
 
-
-
-
 app.use("/api/educator", educatorRouter);
-
 app.use("/api/course", courseRouter);
-
 app.use("/api/user", userRouter);
 
-
-
-// port
+// 7️⃣ Server
 const PORT = process.env.PORT || 5000;
-
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
