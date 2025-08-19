@@ -84,13 +84,20 @@ export const stripeWebHooks = async (req, res) => {
 
       const purchaseData = await Purchase.findById(purchaseId);
       const userData = await User.findById(purchaseData.userId);
-      const courseData = await Course.findById(purchaseData.courseId.toString());
+      const courseData = await Course.findById(
+        purchaseData.courseId.toString()
+      );
 
-      courseData.enrolledStudents.push(userData._id);
-      await courseData.save();
+      if (courseData && userData) {
+        courseData.enrolledStudents.push(userData._id);
+        await courseData.save();
 
-      userData.enrolledCourses.push(courseData._id);
-      await userData.save();
+        userData.enrolledCourses.push(courseData._id);
+        await userData.save();
+      } else {
+        console.error("User or Course not found for purchase:", purchaseId);
+        return res.status(404).json({ success: false, message: "User or Course not found" });
+      }
 
       purchaseData.status = "completed";
       await purchaseData.save();

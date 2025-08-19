@@ -18,12 +18,14 @@ import userRouter from "./routes/userRoutes.js";
 
 const app = express();
 
-// 2️⃣ connect to database
-await connectDB();
-await connectCloudinary();
+(async () => {
+  // 2️⃣ connect to database
+  await connectDB();
+  await connectCloudinary();
 
-// 3️⃣ middleware
-app.use(cors());
+  // 3️⃣ middleware
+  app.use(cors());
+})();
 
 // 4️⃣ Webhooks (⚠️ put BEFORE clerkMiddleware)
 app.post("/clerk", express.json(), clerkWebhooks); // Clerk can use JSON
@@ -43,7 +45,6 @@ app.use("/api/course", courseRouter);
 app.use("/api/user", userRouter);
 
 // 7️⃣ Server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+import serverless from "serverless-http";
+
+export default serverless(app);
