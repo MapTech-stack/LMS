@@ -21,14 +21,21 @@ await connectCloudinary();
 // middleware
 app.use(cors());
 app.use(clerkMiddleware()); // Clerk middleware for authentication to become educator
-app.use(express.json()); // Middleware to parse JSON requests globally
 
 // routes
+app.post("/clerk", express.json(), clerkWebhooks);
+app.post('/stripe',express.raw({type: 'application/json'}), stripeWebHooks)
+
+
+app.use(express.json()); // Middleware to parse JSON requests globally
+
+
 app.get("/", (req, res) => {
   res.send("API is running");
 });
 
-app.post("/clerk", express.json(), clerkWebhooks);
+
+
 
 app.use("/api/educator", educatorRouter);
 
@@ -37,7 +44,6 @@ app.use("/api/course", courseRouter);
 app.use("/api/user", userRouter);
 
 
-app.post('/stripe',express.raw({type: 'application/json'}), stripeWebHooks)
 
 // port
 const PORT = process.env.PORT || 5000;

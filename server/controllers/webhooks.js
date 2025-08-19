@@ -73,7 +73,8 @@ export const stripeWebHooks = async (req, res) => {
   try {
     // Stripe expects the raw body as a Buffer for signature verification
     event = Stripe.webhooks.constructEvent(
-      req.rawBody ? req.rawBody : Buffer.from(JSON.stringify(req.body)),
+      // req.rawBody ? req.rawBody : Buffer.from(JSON.stringify(req.body)),
+        req.body,
       sig,
       process.env.STRIPE_WEBHOOK_SECRET // Use the webhook secret, not the API key
     );
@@ -129,6 +130,7 @@ export const stripeWebHooks = async (req, res) => {
     }
     default:
       console.log(`Unhandled event type ${event.type}`);
+      break;
   }
 
   res.json({ received: true });
