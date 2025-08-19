@@ -59,7 +59,7 @@ export const clerkWebhooks = async (req, res) => {
   }
 };
 
-const stripeInstance = new Stripe(process.env.STRIPE_WEBHOOK_SECRET_KEY);
+const stripeInstance = new Stripe(process.env.STRIPE_WEBHOOK_SECRET);
 
 // Stripe webhook handler
 export const stripeWebHooks = async (req, res) => {
@@ -68,10 +68,11 @@ export const stripeWebHooks = async (req, res) => {
   let event;
 
   try {
+    // Stripe expects the raw body as a Buffer for signature verification
     event = Stripe.webhooks.constructEvent(
-      req.body,
+      req.rawBody ? req.rawBody : Buffer.from(JSON.stringify(req.body)),
       sig,
-      process.env.STRIPE_WEBHOOK_SECRET_KEY
+      process.env.STRIPE_WEBHOOK_SECRET // Use the webhook secret, not the API key
     );
   } catch (err) {
     console.log(`Webhook Error: ${err.message}`);
