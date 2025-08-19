@@ -2,14 +2,16 @@ import { useEffect, useState } from "react";
 import { createContext, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { dummyCourses } from "../assets/assets";
-// import { humanizeDuration } from "humanize-duration";
 import humanizeDuration from "humanize-duration";
+import { useAuth, useUser } from "@clerk/clerk-react";
 
 const AppContext = createContext();
 
 export const AppContextProvider = (props) => {
   const navigate = useNavigate();
+  const { getToken } = useAuth();
 
+  const { user } = useUser();
   const currency = import.meta.env.VITE_CURRENCY;
 
   const [allCourses, setAllCourses] = useState([]);
@@ -30,6 +32,18 @@ export const AppContextProvider = (props) => {
     fetchAllCouses();
     fetchUserEnrolledCourses();
   }, []);
+
+  const logToken = async () => {
+    const token = await getToken();
+    console.log("User Token:", token);
+  };
+
+  // Check if user is an educator
+  useEffect(() => {
+    if (user) {
+      logToken();
+    }
+  }, [user]);
 
   //Function to calculate average rating of courrse
   const calculateAverageRating = (course) => {
