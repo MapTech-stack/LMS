@@ -29,4 +29,10 @@ educatorRouter.get(
   getEnrolledStudentData
 );
 
+// Basic error handler middleware for educator routes
+educatorRouter.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: "Internal Server Error" });
+});
+
 export default educatorRouter;

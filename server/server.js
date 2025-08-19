@@ -1,9 +1,4 @@
-// 1️⃣ Add this at the very top for Vercel
-export const config = {
-  api: {
-    bodyParser: false, // Disable body parsing for raw webhook body
-  },
-};
+// 1️⃣ Remove Next.js API config (not needed for Express/serverless)
 
 import express from "express";
 import cors from "cors";
@@ -18,16 +13,14 @@ import userRouter from "./routes/userRoutes.js";
 
 const app = express();
 
+// 2️⃣ connect to database
 (async () => {
-  // 2️⃣ connect to database
   await connectDB();
   await connectCloudinary();
-
-  // 3️⃣ middleware
-  app.use(cors());
 })();
-
-// 4️⃣ Webhooks (⚠️ put BEFORE clerkMiddleware)
+// 2️⃣ connect to database BEFORE handling requests
+await connectDB();
+await connectCloudinary();
 app.post("/clerk", express.json(), clerkWebhooks); // Clerk can use JSON
 app.post("/stripe", express.raw({ type: "application/json" }), stripeWebHooks); // Stripe needs raw body
 

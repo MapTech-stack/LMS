@@ -2,8 +2,12 @@ import { clerkClient } from "@clerk/express";
 
 // create midleware to protect educator route
 export const protectEducator = async (req, res, next) => {
-  
   try {
+    if (!req.auth || !req.auth.userId) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Authentication required" });
+    }
     const userId = req.auth.userId;
     const response = await clerkClient.users.getUser(userId);
     if (!response || response.publicMetadata.role !== "educator") {

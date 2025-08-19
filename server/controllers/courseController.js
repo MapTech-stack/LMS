@@ -24,14 +24,26 @@ export const getCourseById = async (req, res) => {
   try {
     const courseData = await Course.findById(id).populate({ path: "educator" });
 
+    // Check if courseData and courseContent exist
+    if (!courseData || !courseData.courseContent) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
     // remove lecture url if isPreview is false
-    courseData.courseContent.forEach((chapter) => {
-      chapter.chapterContent.forEach((lecture) => {
-        if (!lecture.isPreview) {
-          lecture.lectureUrl = "";
+    if (Array.isArray(courseData.courseContent)) {
+      courseData.courseContent.forEach((chapter) => {
+        if (Array.isArray(chapter.chapterContent)) {
+          chapter.chapterContent.forEach((lecture) => {
+            if (!lecture.isPreview) {
+              lecture.lectureUrl = "";
+            }
+          });
         }
       });
-    });
+    }
     res.status(200).json({
       success: true,
       course: courseData,

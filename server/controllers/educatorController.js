@@ -1,6 +1,6 @@
 import { clerkClient } from "@clerk/express";
 import Course from "../models/course.js";
-import User from "../models/user.js";
+import User from "../models/User.js";
 import { v2 as cloudinary } from "cloudinary";
 import { Purchase } from "../models/Purchase.js";
 
@@ -26,18 +26,41 @@ export const addCourse = async (req, res) => {
     const { courseData } = req.body;
     const imageFile = req.file;
     const educatorId = req.auth.userId;
+
+    if (!courseData) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Course data is required" });
+    }
+
     if (!imageFile) {
       return res
         .status(400)
         .json({ success: false, message: "Course thumbnail is required" });
     }
 
-    const parsedCourseData = JSON.parse(courseData);
+    let parsedCourseData;
+    try {
+      parsedCourseData = JSON.parse(courseData);
+    } catch (err) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid course data format" });
+    }
+
     parsedCourseData.educator = educatorId;
 
     const newCourse = await Course.create(parsedCourseData);
 
-    const imageUpload = await cloudinary.uploader.upload(imageFile.path);
+    let imageUpload;
+    try {
+      imageUpload = await cloudinary.uploader.upload(imageFile.path);
+    } catch (err) {
+      await Course.findByIdAndDelete(newCourse._id);
+      return res
+        .status(500)
+        .json({ success: false, message: "Image upload failed" });
+    }
 
     newCourse.courseThumbnail = imageUpload.secure_url;
     await newCourse.save();

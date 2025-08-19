@@ -67,13 +67,13 @@ const courseSchema = new mongoose.Schema(
       },
     ],
     educator: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
     enrolledStudents: [
       {
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
         ref: "User",
       },
     ],

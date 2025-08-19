@@ -69,6 +69,9 @@ export const purchaseCourse = async (req, res) => {
     const newPurchase = await Purchase.create(purchaseData);
 
     // stripe Getway initialize
+    if (!process.env.STRIPE_SECRET_KEY || !process.env.CURRENCY) {
+      return res.status(500).json({ success: false, message: "Stripe configuration missing" });
+    }
     const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
     const currency = process.env.CURRENCY.toLowerCase();
 
@@ -79,7 +82,7 @@ export const purchaseCourse = async (req, res) => {
           currency,
           product_data: {
             name: courseData.courseTitle,
-            // description: courseData.description,
+          unit_amount: Math.round(newPurchase.amount * 100),
             // images: [courseData.thumbnail],
           },
           unit_amount: Math.floor(newPurchase.amount) * 100,

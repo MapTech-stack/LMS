@@ -80,12 +80,34 @@ export const stripeWebHooks = async (req, res) => {
         payment_intent: paymentIntentId,
       });
 
+      if (
+        !session.data ||
+        !session.data[0] ||
+        !session.data[0].metadata ||
+        !session.data[0].metadata.purchaseId
+      ) {
+        console.error(
+          "Session or purchaseId not found for payment intent:",
+          paymentIntentId
+        );
+        return res
+          .status(404)
+          .json({ success: false, message: "Session or purchaseId not found" });
+      }
+
       const { purchaseId } = session.data[0].metadata;
 
       const purchaseData = await Purchase.findById(purchaseId);
+      if (!purchaseData) {
+        console.error("Purchase not found for purchaseId:", purchaseId);
+        return res
+          .status(404)
+          .json({ success: false, message: "Purchase not found" });
+      }
+
       const userData = await User.findById(purchaseData.userId);
       const courseData = await Course.findById(
-        purchaseData.courseId.toString()
+        purchaseData.courseId?.toString()
       );
 
       if (courseData && userData) {
@@ -96,25 +118,12 @@ export const stripeWebHooks = async (req, res) => {
         await userData.save();
       } else {
         console.error("User or Course not found for purchase:", purchaseId);
-        return res.status(404).json({ success: false, message: "User or Course not found" });
+        return res
+          .status(404)
+          .json({ success: false, message: "User or Course not found" });
       }
 
       purchaseData.status = "completed";
-      await purchaseData.save();
-      break;
-    }
-
-    case "payment_intent.payment_failed": {
-      const paymentIntent = event.data.object;
-      const paymentIntentId = paymentIntent.id;
-
-      const session = await stripeInstance.checkout.sessions.list({
-        payment_intent: paymentIntentId,
-      });
-
-      const { purchaseId } = session.data[0].metadata;
-      const purchaseData = await Purchase.findById(purchaseId);
-      purchaseData.status = "failed";
       await purchaseData.save();
       break;
     }
