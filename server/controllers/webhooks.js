@@ -35,7 +35,7 @@ export const clerkWebhooks = async (req, res) => {
       case "user.updated": {
         // Handle user updated event
         const userData = {
-          email: data.email_address[0].email_address,
+          email: data.email_addresses && data.email_addresses[0] ? data.email_addresses[0].email_address : "",
           name: data.first_name + " " + data.last_name,
           imageUrl: data.image_url,
         };
@@ -59,7 +59,10 @@ export const clerkWebhooks = async (req, res) => {
   }
 };
 
-const stripeInstance = new Stripe(process.env.STRIPE_WEBHOOK_SECRET);
+// const stripeInstance = new Stripe(process.env.STRIPE_WEBHOOK_SECRET);
+const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+
 
 // Stripe webhook handler
 export const stripeWebHooks = async (req, res) => {
