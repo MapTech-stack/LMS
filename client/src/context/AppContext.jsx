@@ -9,7 +9,7 @@ const AppContext = createContext();
 
 export const AppContextProvider = (props) => {
   const navigate = useNavigate();
-  const { getToken } = useAuth();
+  const { getToken } = useAuth(); //to token from clerk
 
   const { user } = useUser();
   const currency = import.meta.env.VITE_CURRENCY;
