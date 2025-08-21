@@ -8,57 +8,112 @@ import Course from "../models/Course.js";
 
 // API controller function to manage clerk User with database
 
+// export const clerkWebhooks = async (req, res) => {
+//   try {
+//     const whook = new Webhook(process.env.CLERK_WEBHOOK_SECRET);
+
+//     await whook.verify(JSON.stringify(req.body), {
+//       "svix-id": req.headers["svix-id"],
+//       "svix-timestamp": req.headers["svix-timestamp"],
+//       "svix-signature": req.headers["svix-signature"],
+//     });
+
+//     const { data, type } = req.body;
+
+//     switch (type) {
+//       case "user.created": {
+//         // Handle user created event
+//         const userData = {
+//           _id: data.id,
+//           email: data.email_addresses[0].email_address,
+//           name: data.first_name + " " + data.last_name,
+//           imageUrl: data.image_url,
+//         };
+//         await User.create(userData);
+//         res.json({});
+//         break;
+//       }
+//       case "user.updated": {
+//         // Handle user updated event
+//         const userData = {
+//           email: data.email_addresses[0].email_address,
+//           name: data.first_name + " " + data.last_name,
+//           imageUrl: data.image_url,
+//         };
+//         await User.findByIdAndUpdate(data.id, userData);
+//         res.json({});
+//         break;
+//       }
+//       case "user.deleted": {
+//         // Handle user deleted event
+//         await User.findByIdAndDelete(data.id);
+//         res.json({});
+//         break;
+//       }
+//       default:
+//         // Handle unknown event type
+
+//         break;
+//     }
+//   } catch (error) {
+//     res.json({ success: false, message: error.message });
+//   }
+// };
+
+
 export const clerkWebhooks = async (req, res) => {
   try {
     const whook = new Webhook(process.env.CLERK_WEBHOOK_SECRET);
 
-    await whook.verify(JSON.stringify(req.body), {
+    // Verify and parse the event
+    const evt = whook.verify(JSON.stringify(req.body), {
       "svix-id": req.headers["svix-id"],
       "svix-timestamp": req.headers["svix-timestamp"],
       "svix-signature": req.headers["svix-signature"],
     });
 
-    const { data, type } = req.body;
+    const { data, type } = evt;
 
     switch (type) {
       case "user.created": {
-        // Handle user created event
         const userData = {
           _id: data.id,
-          email: data.email_addresses[0].email_address,
-          name: data.first_name + " " + data.last_name,
+          email: data.email_addresses?.[0]?.email_address, // correct usage
+          name: `${data.first_name || ""} ${data.last_name || ""}`.trim(),
           imageUrl: data.image_url,
         };
         await User.create(userData);
-        res.json({});
         break;
       }
+
       case "user.updated": {
-        // Handle user updated event
         const userData = {
-          email: data.email_addresses[0].email_address,
-          name: data.first_name + " " + data.last_name,
+          email: data.email_addresses?.[0]?.email_address, //  correct usage
+          name: `${data.first_name || ""} ${data.last_name || ""}`.trim(),
           imageUrl: data.image_url,
         };
-        await User.findByIdAndUpdate(data.id, userData);
-        res.json({});
+        await User.findByIdAndUpdate(data.id, userData, { new: true });
         break;
       }
-      case "user.deleted": {
-        // Handle user deleted event
-        await User.findByIdAndDelete(data.id);
-        res.json({});
-        break;
-      }
-      default:
-        // Handle unknown event type
 
+      case "user.deleted": {
+        await User.findByIdAndDelete(data.id);
+        break;
+      }
+
+      default:
+        console.log(`Unhandled event type: ${type}`);
         break;
     }
+
+    return res.status(200).json({ success: true });
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    console.error("Clerk webhook error:", error.message);
+    return res.status(400).json({ success: false, message: error.message });
   }
 };
+
+
 
 //
 
@@ -69,7 +124,7 @@ export const stripeWebhooks = async (request, response) => {
   let event;
 
   try {
-    event = Stripe.webhooks.constructEvent(
+    event = stripeInstance.webhooks.constructEvent(
       request.body,
       sig,
       process.env.STRIPE_WEBHOOK_SECRET
