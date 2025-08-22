@@ -11,18 +11,18 @@ import { clerkMiddleware } from "@clerk/express";
 
 const app = express();
 
-// Database + Cloudinary
+// Connect to database and Cloudinary
 await connectDB();
 connectCloudinary();
 
 // Middleware
 app.use(cors());
 
-// Webhooks first (raw body if Stripe)
+// Webhooks (no auth, raw JSON for Stripe)
 app.post("/clerk", express.json(), clerkWebhooks);
 app.post("/stripe", express.raw({ type: "application/json" }), stripeWebhooks);
 
-// JSON parser for regular routes
+// JSON parser for normal routes
 app.use(express.json());
 app.use(clerkMiddleware());
 
@@ -32,6 +32,5 @@ app.use("/api/educator", educatorRouter);
 app.use("/api/course", courseRouter);
 app.use("/api/user", userRouter);
 
-// Start server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Export app for Vercel
+export default app;
