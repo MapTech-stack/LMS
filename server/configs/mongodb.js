@@ -1,13 +1,27 @@
 import mongoose from "mongoose";
 
-// connect to the mongodb database
-
+// Connect to MongoDB
 const connectDB = async () => {
-  mongoose.connection.on("connected", () => {
-    console.log("MongoDB connection successful");
-  });
+  try {
+    // Listen for successful connection
+    mongoose.connection.on("connected", () => {
+      console.log("✅ MongoDB connection successful");
+    });
 
-  await mongoose.connect(`${process.env.MONGODB_URI}/MapVisTech-Academys`);
+    mongoose.connection.on("error", (err) => {
+      console.error("❌ MongoDB connection error:", err);
+    });
+
+    mongoose.connection.on("disconnected", () => {
+      console.warn("⚠️ MongoDB disconnected");
+    });
+
+    // Connect without deprecated options
+    await mongoose.connect(`${process.env.MONGODB_URI}/MapVisTech-Academys`);
+  } catch (error) {
+    console.error("❌ Failed to connect to MongoDB:", error.message);
+    process.exit(1); // exit process on failure
+  }
 };
 
 export default connectDB;

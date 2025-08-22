@@ -1,7 +1,5 @@
 import mongoose from "mongoose";
 
-// schema for lecture
-
 const lectureSchema = new mongoose.Schema(
   {
     lectureId: { type: String, required: true },
@@ -14,13 +12,11 @@ const lectureSchema = new mongoose.Schema(
   { _id: false }
 );
 
-// schema for chapter
 const chapterSchema = new mongoose.Schema(
   {
     chapterId: { type: String, required: true },
     chapterOrder: { type: Number, required: true },
     chapterTitle: { type: String, required: true },
-
     chapterContent: [lectureSchema],
   },
   { _id: false }
@@ -36,22 +32,13 @@ const CourseSchema = new mongoose.Schema(
     discount: { type: Number, required: true, min: 0, max: 100 },
     courseContent: [chapterSchema],
     courseRatings: [
-      {
-        userId: { type: String },
-        rating: { type: Number, min: 1, max: 5 },
-      },
+      { userId: { type: String }, rating: { type: Number, min: 1, max: 5 } },
     ],
-
     educator: { type: String, ref: "User", required: true },
     enrolledStudents: [{ type: String, ref: "User" }],
   },
   { timestamps: true, minimize: false }
 );
 
-
-
-
-
 const Course = mongoose.model("Course", CourseSchema);
-
 export default Course;
